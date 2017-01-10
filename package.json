@@ -1,0 +1,16 @@
+{
+  "name": "housing-bond",
+  "version": "0.0.0",
+  "description": "Get money to build a house and get it built by someone",
+  "main": "housing-bond.js",
+  "dependencies": {
+    "module-library": "*",
+    "house-plan": "*",
+    "house-panels": "*",
+    "web-element": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erikpukinskis/housing-bond.git"
+  }
+}
