@@ -54,8 +54,8 @@ library.define(
 
 module.exports = library.export(
   "invoice-materials",
-  ["./some-materials", "create-invoice"],
-  function(BASE_MATERIALS, createInvoice) {
+  ["building-materials", "create-invoice"],
+  function(buildingMaterials, createInvoice) {
 
     function invoiceMaterials(materials) {
 
@@ -82,7 +82,7 @@ module.exports = library.export(
 
     function addPlanned(description, pieces, invoice) {
 
-      var material = BASE_MATERIALS[description]
+      var material = buildingMaterials.get(description)
 
       var quantity = pieces.length + (material.extra || 0)
       var price = material.price
@@ -97,7 +97,7 @@ module.exports = library.export(
 
     function addBulk(description, lots, invoice) {
 
-      var material = BASE_MATERIALS[description]
+      var material = buildingMaterials.get(description)
 
       var totalQuantity = 0
       for(var i=0; i<lots.length; i++) {

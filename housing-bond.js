@@ -2,8 +2,8 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "housing-bond",
-  ["house-plan", "house-panels", "./allocate-materials", "./invoice-materials", "web-element"],
-  function(HousePlan, housePanels, allocateMaterials, invoiceMaterials, element) {
+  ["house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element"],
+  function(HousePlan, housePanels, buildingMaterials, invoiceMaterials, element) {
     var HOURLY = 2000
     var HOUSE_PER_SECTION = 8
 
@@ -63,7 +63,7 @@ module.exports = library.export(
         })
       })
 
-      var materials = allocateMaterials(plan)
+      var materials = buildingMaterials.forPlan(plan)
 
       console.log(materials.pieceCount+" materials")
 
