@@ -70,7 +70,7 @@ module.exports = library.export(
       var invoice = invoiceMaterials(materials)
 
       invoice.lineItems.unshift({ description: "builder labor",
-          subtotal: hours*HOURLY})
+          subtotal: hours*HOURLY, quantity: hours, unit: "hours"})
 
       var items = invoice.lineItems.map(lineItemTemplate)
 
@@ -112,7 +112,7 @@ module.exports = library.export(
           item.description
         ))
 
-        var qty = item.quantity||""
+        var qty = ""+item.quantity||""
         if (qty.length && item.unit) {
           qty += " "
         }
