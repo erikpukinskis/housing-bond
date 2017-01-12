@@ -8,7 +8,12 @@
     "house-plan": "*",
     "house-panels": "*",
     "building-materials": "*",
-    "web-element": "*"
+    "web-element": "*",
+    "web-site": "*",
+    "release-checklist": "*",
+    "browser-bridge": "*",
+    "basic-styles": "*",
+    "with-nearby-modules": "*"
   },
   "repository": {
     "type": "git",

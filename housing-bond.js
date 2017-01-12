@@ -2,48 +2,48 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "housing-bond",
-  ["house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element"],
-  function(HousePlan, housePanels, buildingMaterials, invoiceMaterials, element) {
+  ["with-nearby-modules", "house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element", "browser-bridge", "basic-styles"],
+  function(withNearbyModules, HousePlan, housePanels, buildingMaterials, invoiceMaterials, element, BrowserBridge, basicStyles) {
     var HOURLY = 2000
     var HOUSE_PER_SECTION = 8
 
-    function register(list) {
-      if (list.__bondPlugingRegisteredTags) { return }
 
-      housePanels.forEach(function(options) {
-        list.registerTag(options.tag)
-      })
+    withNearbyModules(
+      ["release-checklist", "web-site"],
+      function(list, site) {
+  
+        site.addRoute(
+          "get",
+          "/housing-bond",
+          function(request, response) {
+            var bridge = new BrowserBridge()
+            renderBond(bridge.forResponse(response), list)
+          }
+        )
 
-      list.__bondPlugingRegisteredTags = true
-    }
-
-    var lineItemTemplate = element.template(
-      ".line-item",
-      function(item) {
-        if (!item.description) {
-          throw new Error("no description for item "+JSON.stringify(item))
-        }
-
-        this.addChild(element(
-          ".grid-text",
-          item.description
-        ))
-
-        this.addChild(element(
-          ".grid-column",
-          item.quantity+" "+item.unit
-        ))
-
-        this.addChild(element(
-          ".grid-column",
-          "$"+toDollarString(item.subtotal)
-        ))
+        site.addRoute(
+          "post",
+          "/issue-bond",
+          function() {}
+        )
       }
     )
 
-    return function(list, bridge) {
 
-      register(list)
+    function renderBond(bridge, list) {
+
+      if (!list) {
+        throw new Error("renderBond takes (bridge, list). You didn't pass a list")
+      }
+      registerTagsOn(list)
+      basicStyles.addTo(bridge)
+
+      if (!bridge.__nrtvHousingBondStyles) {
+        bridge.addToHead(
+          element.stylesheet(lineItemTemplate))
+
+        bridge.__nrtvHousingBondStyles = true
+      }
 
       var plan = new HousePlan()
       var hours = 0
@@ -84,26 +84,55 @@ module.exports = library.export(
         element(".button", "Issue bond"),
       ])
 
-      var gridText = element.style(
-        ".grid-text",
-        {
-          "display": "inline-block",
-          "width": "21em",
-        }
-      )
-
-      var gridColumn = element.style(
-        ".grid-column",
-        {
-          "display": "inline-block",
-          "width": "7em",
-        }
-      )
-
-      bridge.addToHead(element.stylesheet(gridText, gridColumn))
-
       bridge.send(body)
     }
+
+    function registerTagsOn(list) {
+      if (list.__bondPlugingRegisteredTags) { return }
+
+      housePanels.forEach(function(options) {
+        list.registerTag(options.tag)
+      })
+
+      list.__bondPlugingRegisteredTags = true
+    }
+
+    var lineItemTemplate = element.template(
+      ".line-item",
+      element.style({
+        "margin-top": "0.25em",
+      }),
+      function(item) {
+        if (!item.description) {
+          throw new Error("no description for item "+JSON.stringify(item))
+        }
+
+        this.addChild(element(
+          ".grid-12",
+          item.description
+        ))
+
+        var qty = item.quantity||""
+        if (qty.length && item.unit) {
+          qty += " "
+        }
+        qty += item.unit||""
+
+        this.addChild(element(
+          ".grid-8",
+          qty
+        ))
+
+        this.addChild(element(
+          ".grid-4",
+          element.style({
+            "border-bottom": "1px solid #666",
+            "padding-left": "0.25em"
+          }),
+          "$"+toDollarString(item.subtotal)
+        ))
+      }
+    )
 
 
     function toDollarString(cents) {
@@ -120,6 +149,7 @@ module.exports = library.export(
     }
 
 
+    return renderBond
 
   }
 )
