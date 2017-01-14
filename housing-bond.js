@@ -73,7 +73,7 @@ module.exports = library.export(
       var items = invoice.lineItems.map(lineItemTemplate)
 
       var body = element([
-        element("h1", list.story+" Bond"),
+        element("h1", "Housing Bond: "+list.story),
         element(items),
         element("p", [
         element("Tax: $"+toDollarString(invoice.tax)),
