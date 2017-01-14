@@ -4,22 +4,20 @@ module.exports = library.export(
   "housing-bond",
   ["with-nearby-modules", "house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element", "browser-bridge", "basic-styles"],
   function(withNearbyModules, HousePlan, housePanels, buildingMaterials, invoiceMaterials, element, BrowserBridge, basicStyles) {
+
+    console.log("housing bond generator")
+    
     var HOURLY = 2000
     var HOUSE_PER_SECTION = 8
 
 
+    console.log("here we are, loading and waiting?")
+    
     withNearbyModules(
-      ["release-checklist", "web-site"],
-      function(list, site) {
+      ["release-checklist", "web-site", "browser-bridge"],
+      function(list, site, bridge) {
   
-        site.addRoute(
-          "get",
-          "/housing-bond",
-          function(request, response) {
-            var bridge = new BrowserBridge()
-            renderBond(bridge.forResponse(response), list)
-          }
-        )
+        renderBond(bridge, list)
 
         site.addRoute(
           "post",
