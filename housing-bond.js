@@ -14,11 +14,8 @@ module.exports = library.export(
     console.log("here we are, loading and waiting?")
     
     withNearbyModules(
-      ["release-checklist", "web-site", "browser-bridge"],
-      function(list, site, bridge) {
-  
-        renderBond(bridge, list)
-
+      ["web-site"],
+      function(site) {
         site.addRoute(
           "post",
           "/issue-bond",
@@ -28,7 +25,7 @@ module.exports = library.export(
     )
 
 
-    function renderBond(bridge, list) {
+    function renderBond(list, bridge) {
 
       if (!list) {
         throw new Error("renderBond takes (bridge, list). You didn't pass a list")
