@@ -7,7 +7,7 @@ module.exports = library.export(
 
     
     var HOURLY = 2000
-    var HOUSE_PER_SECTION = 8
+    var HOUSE_PER_SECTION = 5
 
 
     function prepareSite(site) {
@@ -58,8 +58,12 @@ module.exports = library.export(
 
       var invoice = invoiceMaterials(materials)
 
-      invoice.lineItems.unshift({ description: "builder labor",
-          subtotal: hours*HOURLY, quantity: hours, unit: "hours"})
+      invoice.addLineItem({
+        description: "builder labor",
+        price: HOURLY,
+        quantity: hours,
+        unit: "hours"
+      })
 
       var items = invoice.lineItems.map(lineItemTemplate)
 
@@ -67,7 +71,7 @@ module.exports = library.export(
         element("h1", "Housing Bond: "+list.story),
         element(items),
         element("p", [
-        element("Tax: $"+toDollarString(invoice.tax)),
+          element("Tax: $"+toDollarString(invoice.tax)),
           element("Total: $"+toDollarString(invoice.total)),
         ]),
         element(".button", "Issue bond"),
