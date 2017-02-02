@@ -1,20 +1,114 @@
 var library = require("module-library")(require)
 
+library.define(
+  "identifiable",
+  function() {
+
+    function assignId(collection, item) {
+      do {
+        var id = Math.random().toString(36).split(".")[1].substr(0,4)
+      } while (collection[id])
+
+      item.id = id
+    }
+
+    function get(collection, description, ref) {
+      if (!ref) {
+        throw new Error("No ref!")
+      }
+
+      if (typeof ref == "string") {
+        var item = collection[ref]
+      } else {
+        var item = ref
+      }
+
+      if (!item) {
+        throw new Error("No "+description+" in collection with id "+ref)
+      }
+
+      return item
+    }
+
+    return {
+      assignId: assignId,
+      getFrom: function(collection) {
+        return get.bind(null, collection)
+      }
+    }
+
+  }
+)
+
+
+library.define(
+  "issue-bond",
+  ["identifiable"],
+  function(identifiable) {
+
+    var bonds = {}
+
+    function issueBond(id, amount, issuerName, data) {
+
+      var bond = {
+        id: id,
+        amount: amount,
+        issuerName: issuerName,
+        data: data
+      }
+
+      if (!bond.id) {
+        identifiable.assignId(bonds, bond)
+      }
+
+      return bond
+    }
+
+    return issueBond
+  }
+)
+
+
+
 module.exports = library.export(
   "housing-bond",
-  ["with-nearby-modules", "house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element", "browser-bridge", "basic-styles"],
-  function(withNearbyModules, HousePlan, housePanels, buildingMaterials, invoiceMaterials, element, BrowserBridge, basicStyles) {
+  ["with-nearby-modules", "house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element", "browser-bridge", "basic-styles", "tell-the-universe", "issue-bond", "release-checklist"],
+  function(withNearbyModules, HousePlan, housePanels, buildingMaterials, invoiceMaterials, element, BrowserBridge, basicStyles, tellTheUniverse, issueBond, releaseChecklist) {
 
-    
+
+    var tellTheUniverse = tellTheUniverse.called("bonds").withNames({issueBond: "issue-bond"})
+
     var HOURLY = 2000
     var HOUSE_PER_SECTION = 5
+
+    // Above $1,000,000 total sales we have to file this? https://www.sec.gov/about/forms/forms-1.pdf
 
 
     function prepareSite(site) {
       site.addRoute(
         "post",
-        "/issue-bond",
-        function() {}
+        "/housing-bond/issue",
+        function(request, response) {
+          var listId = request.body.checklistId
+          var issuerName = request.body.issuerName
+          var amount = parseInt(request.body.amount.replace(/[^0-9.]/, ""))
+
+          var list = releaseChecklist.get(listId)
+
+          var bond = issueBond(
+            null,
+            amount,
+            issuerName,
+            {
+              for: "Completion of release checklist "+list.story,
+              listId: listId
+            }
+          )
+
+          tellTheUniverse("issueBond", bond.id, amount, issuerName, bond.data)
+
+          response.send("ya")
+        }
       )
     }
 
@@ -67,14 +161,44 @@ module.exports = library.export(
 
       var items = invoice.lineItems.map(lineItemTemplate)
 
-      var body = element([
+      var totalText = "$"+toDollarString(invoice.total)
+
+      var body = element("form", {method: "post", action: "/housing-bond/issue"}, [
         element("h1", "Housing Bond: "+list.story),
         element(items),
         element("p", [
           element("Tax: $"+toDollarString(invoice.tax)),
-          element("Total: $"+toDollarString(invoice.total)),
+          element("Total: "+totalText),
         ]),
-        element(".button", "Issue bond"),
+
+        element("p", "Who is issuing this bond?"),
+        element("p",
+          element("input", {
+            type: "text",
+            name: "issuerName",
+            placeholder: "Issuer name",
+          })
+        ),
+
+        element("p",
+          element("input", 
+            {
+              type: "text", 
+              value: totalText,
+              name: "amount",
+              placeholder: "Amount"
+            },
+            element.style({"max-width": "5em"})
+          )
+        ),
+
+        element("input", {
+          type: "hidden",
+          name: "checklistId",
+          value: list.id
+        }),
+
+        element("input.button", {type: "submit", value: "Issue bond"}),
       ])
 
       bridge.send(body)
