@@ -73,8 +73,8 @@ library.define(
 
 module.exports = library.export(
   "housing-bond",
-  ["with-nearby-modules", "house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element", "browser-bridge", "basic-styles", "tell-the-universe", "issue-bond", "release-checklist"],
-  function(withNearbyModules, HousePlan, housePanels, buildingMaterials, invoiceMaterials, element, BrowserBridge, basicStyles, tellTheUniverse, issueBond, releaseChecklist) {
+  ["house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element", "basic-styles", "tell-the-universe", "issue-bond", "release-checklist"],
+  function(HousePlan, housePanels, buildingMaterials, invoiceMaterials, element, basicStyles, tellTheUniverse, issueBond, releaseChecklist) {
 
 
     var tellTheUniverse = tellTheUniverse.called("bonds").withNames({issueBond: "issue-bond"})
