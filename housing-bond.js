@@ -48,12 +48,13 @@ library.define(
 
     var bonds = {}
 
-    function issueBond(id, amount, issuerName, data) {
+    function issueBond(id, amount, issuerName, repaymentSource, data) {
 
       var bond = {
         id: id,
         amount: amount,
         issuerName: issuerName,
+        repaymentSource: repaymentSource,
         data: data
       }
 
@@ -83,29 +84,40 @@ module.exports = library.export(
 
     // Above $1,000,000 total sales we have to file this? https://www.sec.gov/about/forms/forms-1.pdf
 
+    function parseMoney(string) {
+      var trimmed = string.replace(/[^.0-9]/, "")
+      var amount = parseFloat(trimmed)
+      var dollars = Math.floor(amount)
+      var remainder = amount - dollars
+      var cents = Math.floor(remainder*100)
+
+      return dollars*100 + cents
+    }
 
     function prepareSite(site) {
       site.addRoute(
         "post",
         "/housing-bond/issue",
         function(request, response) {
-          var listId = request.body.checklistId
-          var issuerName = request.body.issuerName
-          var amount = parseInt(request.body.amount.replace(/[^0-9.]/, ""))
 
+          var listId = request.body.checklistId
           var list = releaseChecklist.get(listId)
+          var issuerName = request.body.issuerName
+          var amount = parseMoney(request.body.amount)
+
+          var repaymentSource = request.body.repaymentSource
 
           var bond = issueBond(
             null,
             amount,
             issuerName,
+            repaymentSource,
             {
-              for: "Completion of release checklist "+list.story,
               listId: listId
             }
           )
 
-          tellTheUniverse("issueBond", bond.id, amount, issuerName, bond.data)
+          tellTheUniverse("issueBond", bond.id, amount, issuerName, repaymentSource, bond.data)
 
           response.send("ya")
         }
@@ -180,6 +192,7 @@ module.exports = library.export(
           })
         ),
 
+        element("p", "Total bonded amount"),
         element("p",
           element("input", 
             {
@@ -190,6 +203,16 @@ module.exports = library.export(
             },
             element.style({"max-width": "5em"})
           )
+        ),
+
+        element("p", "To be repayed from"),
+        element("p",
+          element("input", {
+            type: "text",
+            name: "repaymentSource",
+            value: "Completion of release checklist "+list.story,
+            placeholder: "Source of repayment funds",
+          })
         ),
 
         element("input", {
