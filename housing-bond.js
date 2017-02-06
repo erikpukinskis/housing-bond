@@ -3,8 +3,8 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "housing-bond",
-  ["house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element", "basic-styles", "tell-the-universe", "./issue-bond", "release-checklist", "browser-bridge"],
-  function(HousePlan, housePanels, buildingMaterials, invoiceMaterials, element, basicStyles, tellTheUniverse, issueBond, releaseChecklist, BrowserBridge) {
+  ["house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element", "basic-styles", "tell-the-universe", "./issue-bond", "release-checklist", "browser-bridge", "./phone-number"],
+  function(HousePlan, housePanels, buildingMaterials, invoiceMaterials, element, basicStyles, tellTheUniverse, issueBond, releaseChecklist, BrowserBridge, phoneNumber) {
 
 
     var tellTheUniverse = tellTheUniverse.called("bonds").withNames({issueBond: "issue-bond"})
@@ -72,7 +72,7 @@ module.exports = library.export(
         function(request, response) {
 
           var name = request.body.name
-          var phoneNumber = request.body.phoneNumber
+          var number = request.body.phoneNumber
           var bondId = request.params.bondId
           var bond = issueBond.get(bondId)
           var faceValue
@@ -83,14 +83,18 @@ module.exports = library.export(
             }
           })
 
-          issueBond.requestShares(name, phoneNumber, bondId, faceValue)
+          issueBond.requestShares(name, number, bondId, faceValue)
 
           tellTheUniverse(
-            "issueBond.requestShares", name, phoneNumber, bondId, faceValue)
+            "issueBond.requestShares", name, number, bondId, faceValue)
+
+          var buyer = phoneNumber("18123201877")
+
+          buyer.send(number+" wants to by a $"+toDollarString(faceValue)+" bond")
 
           var bridge = baseBridge.forResponse(response)
 
-          bridge.send(element(".button", "Thank you for your request. Erik will text/call you shortly to arrange payment!"))
+          bridge.send(element("p", "Thank you for your request. Erik will text/call you shortly to arrange payment!"))
         }
       )
 

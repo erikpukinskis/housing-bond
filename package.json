@@ -14,11 +14,15 @@
     "basic-styles": "*",
     "tell-the-universe": "*",
     "web-host": "*",
-    "identifiable": "*"
+    "identifiable": "*",
+    "plivo": "*"
   },
   "devDependencies": {
     "web-host": "*",
     "facilitate-releases": "*"
+  },
+  "scripts": {
+    "phone": "env $(cat CREDENTIALS | xargs) node start"
   },
   "repository": {
     "type": "git",
