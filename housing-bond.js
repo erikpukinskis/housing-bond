@@ -1,88 +1,18 @@
 var library = require("module-library")(require)
 
-library.define(
-  "identifiable",
-  function() {
-
-    function assignId(collection, item) {
-      do {
-        var id = Math.random().toString(36).split(".")[1].substr(0,4)
-      } while (collection[id])
-
-      item.id = id
-    }
-
-    function get(collection, description, ref) {
-      if (!ref) {
-        throw new Error("No ref!")
-      }
-
-      if (typeof ref == "string") {
-        var item = collection[ref]
-      } else {
-        var item = ref
-      }
-
-      if (!item) {
-        throw new Error("No "+description+" in collection with id "+ref)
-      }
-
-      return item
-    }
-
-    return {
-      assignId: assignId,
-      getFrom: function(collection) {
-        return get.bind(null, collection)
-      }
-    }
-
-  }
-)
-
-
-library.define(
-  "issue-bond",
-  ["identifiable"],
-  function(identifiable) {
-
-    var bonds = {}
-
-    function issueBond(id, amount, issuerName, repaymentSource, data) {
-
-      var bond = {
-        id: id,
-        amount: amount,
-        issuerName: issuerName,
-        repaymentSource: repaymentSource,
-        data: data
-      }
-
-      if (!bond.id) {
-        identifiable.assignId(bonds, bond)
-      }
-
-      return bond
-    }
-
-    return issueBond
-  }
-)
-
-
 
 module.exports = library.export(
   "housing-bond",
-  ["house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element", "basic-styles", "tell-the-universe", "issue-bond", "release-checklist"],
-  function(HousePlan, housePanels, buildingMaterials, invoiceMaterials, element, basicStyles, tellTheUniverse, issueBond, releaseChecklist) {
+  ["house-plan", "house-panels", "building-materials", "./invoice-materials", "web-element", "basic-styles", "tell-the-universe", "./issue-bond", "release-checklist", "browser-bridge"],
+  function(HousePlan, housePanels, buildingMaterials, invoiceMaterials, element, basicStyles, tellTheUniverse, issueBond, releaseChecklist, BrowserBridge) {
 
 
     var tellTheUniverse = tellTheUniverse.called("bonds").withNames({issueBond: "issue-bond"})
 
+    issueBond("a9ei", 68510, "Erik Pukinskis", "Sale of 6x8 teensyhouse", {"listId":"teensy3"})
+
     var HOURLY = 2000
     var HOUSE_PER_SECTION = 5
-
-    // Above $1,000,000 total sales we have to file this? https://www.sec.gov/about/forms/forms-1.pdf
 
     function parseMoney(string) {
       var trimmed = string.replace(/[^.0-9]/, "")
@@ -95,9 +25,10 @@ module.exports = library.export(
     }
 
     function prepareSite(site) {
+
       site.addRoute(
         "post",
-        "/housing-bond/issue",
+        "/housing-bonds",
         function(request, response) {
 
           var listId = request.body.checklistId
@@ -119,10 +50,98 @@ module.exports = library.export(
 
           tellTheUniverse("issueBond", bond.id, amount, issuerName, repaymentSource, bond.data)
 
-          response.send("ya")
+          response.redirect("/housing-bonds/"+bond.id)
         }
       )
+
+      var baseBridge = new BrowserBridge()
+
+      basicStyles.addTo(baseBridge)
+
+      baseBridge.addToBody(
+        element("a", {href: "/"}, "⤺ Back to work space")
+      )
+
+      baseBridge.addToBody(
+        element("br")
+      )
+
+      site.addRoute(
+        "post",
+        "/housing-bonds/:bondId/buy",
+        function(request, response) {
+
+          var name = request.body.name
+          var phoneNumber = request.body.phoneNumber
+          var bondId = request.params.bondId
+          var bond = issueBond.get(bondId)
+          var faceValue
+
+          ;[20, 100, 500].forEach(function(dollars) {
+            if (request.body["buy-"+dollars]) {
+              faceValue = dollars*100
+            }
+          })
+
+          issueBond.requestShares(name, phoneNumber, bondId, faceValue)
+
+          tellTheUniverse(
+            "issueBond.requestShares", name, phoneNumber, bondId, faceValue)
+
+          var bridge = baseBridge.forResponse(response)
+
+          bridge.send(element(".button", "Thank you for your request. Erik will text/call you shortly to arrange payment!"))
+        }
+      )
+
+      site.addRoute(
+        "get",
+        "/housing-bonds/:id",
+        function(request, response) {
+          var bridge = new BrowserBridge()
+        
+          var bond = issueBond.get(request.params.id)
+
+          renderBondPurchase(bridge.forResponse(response), bond)
+        }
+      )
+
     }
+
+    function renderBondPurchase(bridge, bond) {
+
+      var max = bond.amount
+
+      basicStyles.addTo(bridge)
+
+      var body = element("form", {method: "post", action: "/housing-bonds/"+bond.id+"/buy"}, [
+
+        element("p", "All bonds mature March 30, 2017"),
+
+        element("p", "In the event the project is not fully funded, the issuer may return the purchase price to the purchaser before March 1, 2017 and cancel the bond."),
+
+        element("p", "If you would like to purchase a larger or smaller bond, just choose the closest one, and your bond agent will help you purchase the specific face value you desire."),
+
+        element("p", "Enter your name:"),
+        element("input", {type: "text", placeholder: "Your name", name: "name"}),
+
+        element("p", "Enter your phone number:"),
+        element("input", {type: "text", placeholder: "555-555-5555", name: "phoneNumber"}),
+
+        element("h1", "$20 bond"),
+        element("input", {type: "submit", name: "buy-20", value: "Buy Now - $19.05"}),
+
+        element("h1", "$100 bond"),
+        element("input", {type: "submit", name: "buy-100", value: "Buy Now - $95.24"}),
+
+        element("h1", "$500 bond"),
+        element("input", {type: "submit", name: "buy-500", value: "Buy Now - $476.20"}),
+
+      ])
+
+      bridge.send(body)
+    }
+
 
 
     function renderBond(list, bridge) {
@@ -147,11 +166,6 @@ module.exports = library.export(
         var tag = options.tag
         var generator = options.generator
 
-        if (!options.tag) {
-          console.log(options)
-          throw new Error("panel doesn't have a tag")
-        }
-
         list.eachTagged(tag, function(task) {
           plan.add(generator, options)
           hours += HOUSE_PER_SECTION
@@ -159,8 +173,6 @@ module.exports = library.export(
       })
 
       var materials = buildingMaterials.forPlan(plan)
-
-      console.log(materials.pieceCount+" materials")
 
       var invoice = invoiceMaterials(materials)
 
@@ -175,7 +187,7 @@ module.exports = library.export(
 
       var totalText = "$"+toDollarString(invoice.total)
 
-      var body = element("form", {method: "post", action: "/housing-bond/issue"}, [
+      var body = element("form", {method: "post", action: "/housing-bonds"}, [
         element("h1", "Housing Bond: "+list.story),
         element(items),
         element("p", [

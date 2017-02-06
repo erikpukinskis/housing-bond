@@ -1,16 +1,18 @@
 var library = require("module-library")(require)
 
 library.using(
-  ["web-site", "release-checklist", "with-nearby-modules"],
-  function(site, releaseChecklist, withNearbyModules) {
+  ["web-host", "release-checklist", "./"],
+  function(host, releaseChecklist, housingBond) {
 
     var list = releaseChecklist.get("test")
 
-    withNearbyModules
-    .aModuleAppeared("release-checklist", function() {
-      return list
+    host.onSite(function(site) {
+      housingBond.prepareSite(site)
     })
 
-    site.boot()
+    host.onRequest(function(getBridge) {
+      housingBond(list, getBridge())
+    })
+
   }
 )
