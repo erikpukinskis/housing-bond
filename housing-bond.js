@@ -72,6 +72,12 @@ module.exports = library.export(
 
       site.addRoute("get", "/housing-bond/tiny.jpg", site.sendFile("tiny.jpg"))
 
+      site.addRoute("get", "/housing-bond/front-view.gif", site.sendFile("front-view.gif"))
+
+      site.addRoute("get", "/housing-bond/side-view.gif", site.sendFile("side-view.gif"))
+
+      site.addRoute("get", "/housing-bond/top-view.gif", site.sendFile("top-view.gif"))
+
       site.addRoute(
         "get",
         "/housing-bonds/:id",
@@ -220,12 +226,34 @@ module.exports = library.export(
 
       form.appendStyles({"margin": "5em 0"})
 
+      var plans = element(
+        element.style({"text-align": "center", "margin-top": "5em"}), [
+        element("img", {src: "/housing-bond/side-view.gif"}),
+        element(".caption", "Side view"),
+        element("img", {src: "/housing-bond/top-view.gif"}),
+        element(".caption", "Top view"),
+        element("img", {src: "/housing-bond/front-view.gif"}),
+        element(".caption", "Front view"),
+      ])
+
       var body = element(
         element.style({
           "max-width": "500px",
           "margin": "2em 10% 10em 10%",
         }),
-        [letter, form, invoice]
+        [letter, form, invoice, plans],
+        element.stylesheet(
+          element.style(".caption", {
+            "text-align": "center",
+            "margin-bottom": "5em",
+          }),
+          element.style("img", {
+            "width": "100%",
+          }),
+          element.style("h1", {
+            "margin-top": "2em",
+          })
+        )
       )
 
 
