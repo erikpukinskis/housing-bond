@@ -80,7 +80,7 @@ module.exports = library.export(
         
           var bond = issueBond.get(request.params.id)
 
-          renderBondPurchase(bridge.forResponse(response), bond)
+          renderBond(bridge.forResponse(response), bond)
         }
       )
 
@@ -171,14 +171,13 @@ module.exports = library.export(
       bridge.send(form)
     }
 
-    function renderBondPurchase(bridge, bond) {
+    function renderBond(bridge, bond) {
 
       var max = bond.amount
 
       basicStyles.addTo(bridge)
 
-      var body = element("form", element.style({"max-width": "500px"}), {method: "post", action: "/housing-bonds/"+bond.id+"/buy"}, [
-
+      var letter = element([
         element("img", {src: "/housing-bond/tiny.jpg"}, element.style({"width": "100%"})),
         element("h1", "Dear friends,"),
         element("p", "I'm starting a small tiny house business. I have built two prototypes, and made very detailed plans. I would like to build one for sale."),
@@ -193,7 +192,9 @@ module.exports = library.export(
         element("p", "No, they are computer drawings and instruction checklists for how to build everything. I will dump all of the details I have below."),
         element("p", "If I've convinced you, click one of the buttons below. If you have questions, text me: 812-320-1877."),
         element("p", "Best,", element("br"), "Erik"),
+      ])
 
+      var form = element("form", {method: "post", action: "/housing-bonds/"+bond.id+"/buy"}, [
         element("p", "Enter your name:"),
         element("input", {type: "text", placeholder: "Your name", name: "name"}),
 
@@ -209,19 +210,33 @@ module.exports = library.export(
         element("h1", "$500 bond"),
         element("input", {type: "submit", name: "buy-500", value: "Buy Now - $476.20"}),
 
+        element("h1", "Name your own price"),
         element("input", {type: "submit", name: "buy-unknown", value: "Buy Now - $????"}),
-
       ])
+
+      var invoice = bridge.partial()
+
+      renderInvoice(bond.data.listId, invoice)
+
+      form.appendStyles({"margin": "5em 0"})
+
+      var body = element(
+        element.style({
+          "max-width": "500px",
+          "margin": "2em 10% 10em 10%",
+        }),
+        [letter, form, invoice]
+      )
+
 
       bridge.send(body)
     }
 
 
 
-    function renderBond(list, bridge) {
-
-      if (!list) {
-        throw new Error("renderBond takes (bridge, list). You didn't pass a list")
+    function renderInvoice(list, bridge) {      
+      if (typeof list == "string") {
+        list = releaseChecklist.get(list)
       }
       registerTagsOn(list)
       basicStyles.addTo(bridge)
@@ -261,14 +276,21 @@ module.exports = library.export(
 
       var totalText = toDollarString(invoice.total)
 
-      var body = element("form", {method: "post", action: "/housing-bonds"}, [
-        element("h1", "Housing Bond: "+list.story),
+      var body = [
+        element("h1", "Expenses"),
         element(items),
         element("p", [
           element("Tax: "+toDollarString(invoice.tax)),
           element("Total: "+totalText),
         ]),
+      ]
 
+      bridge.send(body)
+    }
+
+    function issueBondForm(list, bridge) {
+
+      return element("form", {method: "post", action: "/housing-bonds"}, [
         element("p", "Who is issuing this bond?"),
         element("p",
           element("input", {
@@ -310,7 +332,6 @@ module.exports = library.export(
         element("input.button", {type: "submit", value: "Issue bond"}),
       ])
 
-      bridge.send(body)
     }
 
     function registerTagsOn(list) {
@@ -385,10 +406,12 @@ module.exports = library.export(
       return string
     }
 
-    renderBond.prepareSite = prepareSite
+    renderInvoice.prepareSite = prepareSite
+
+    renderInvoice.issueBondForm = issueBondForm
 
 
-    return renderBond
+    return renderInvoice
 
   }
 )

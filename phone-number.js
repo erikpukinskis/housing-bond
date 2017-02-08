@@ -28,7 +28,8 @@ module.exports = library.export(
       }
 
       if (!messages) {
-        throw new Error("Tried to send text message, but no Plivo credentials found. Try starting app with PLIVO_AUTH_ID=x PLIVO_AUTH_TOKEN=y node your-app")
+        console.log("Tried to send text message, but no Plivo credentials found. Try starting app with PLIVO_AUTH_ID=x PLIVO_AUTH_TOKEN=y node your-app")
+        return
       }
 
       messages.send_message(message, handleResponse)
