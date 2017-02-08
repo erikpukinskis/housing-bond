@@ -186,7 +186,7 @@ module.exports = library.export(
       var letter = element([
         element("img", {src: "/housing-bond/tiny.jpg"}, element.style({"width": "100%"})),
         element("h1", "Dear friends,"),
-        element("p", "I'm starting a small tiny house business. I have built two prototypes, and made very detailed plans. I would like to build one for sale."),
+        element("p", "I'm starting a  tiny house building business. I have built two prototypes, and made very detailed plans. I would like to build one for sale."),
         element("p", "I need materials. Materials cost money. Classic situation in economics. I need to sell a bond."),
         element("p", "The basic deal is this: If you buy a $200 bond, I will return to you $210 some time in the next 60 days."),
 
