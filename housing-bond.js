@@ -70,6 +70,8 @@ module.exports = library.export(
 
       // Learn about an issued bond
 
+      site.addRoute("get", "/housing-bond/tiny.jpg", site.sendFile("tiny.jpg"))
+
       site.addRoute(
         "get",
         "/housing-bonds/:id",
@@ -175,13 +177,22 @@ module.exports = library.export(
 
       basicStyles.addTo(bridge)
 
-      var body = element("form", {method: "post", action: "/housing-bonds/"+bond.id+"/buy"}, [
+      var body = element("form", element.style({"max-width": "500px"}), {method: "post", action: "/housing-bonds/"+bond.id+"/buy"}, [
 
-        element("p", "All bonds mature March 30, 2017"),
+        element("img", {src: "/housing-bond/tiny.jpg"}, element.style({"width": "100%"})),
+        element("h1", "Dear friends,"),
+        element("p", "I'm starting a small tiny house business. I have built two prototypes, and made very detailed plans. I would like to build one for sale."),
+        element("p", "I need materials. Materials cost money. Classic situation in economics. I need to sell a bond."),
+        element("p", "The basic deal is this: If you buy a $200 bond, I will return to you $210 some time in the next 60 days."),
 
-        element("p", "In the event the project is not fully funded, the issuer may return the purchase price to the purchaser before March 1, 2017 and cancel the bond."),
+        element("h1", "What makes you think you can do this?"),
+        element("p", "In order to buy the materials, pay myself and Bobby (my partner in prototype building), pay the premium on the bonds, I need to sell the house for $3000."),
+        element("p", "Seems doable in the Bay Area housing market."),
 
-        element("p", "If you would like to purchase a larger or smaller bond, just choose the closest one, and your bond agent will help you purchase the specific face value you desire."),
+        element("h1", "These \"plans\" are they sketched on a napkin somewhere?"),
+        element("p", "No, they are computer drawings and instruction checklists for how to build everything. I will dump all of the details I have below."),
+        element("p", "If I've convinced you, click one of the buttons below. If you have questions, text me: 812-320-1877."),
+        element("p", "Best,", element("br"), "Erik"),
 
         element("p", "Enter your name:"),
         element("input", {type: "text", placeholder: "Your name", name: "name"}),
@@ -197,6 +208,8 @@ module.exports = library.export(
 
         element("h1", "$500 bond"),
         element("input", {type: "submit", name: "buy-500", value: "Buy Now - $476.20"}),
+
+        element("input", {type: "submit", name: "buy-unknown", value: "Buy Now - $????"}),
 
       ])
 
