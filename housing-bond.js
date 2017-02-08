@@ -9,13 +9,11 @@ module.exports = library.export(
 
     var tellTheUniverse = tellTheUniverse.called("bonds").withNames({issueBond: "issue-bond"})
 
-    issueBond("a9ei", 68510, "Erik Pukinskis", "Sale of 6x8 teensyhouse", {"listId":"teensy3"})
-
     var HOURLY = 2000
     var HOUSE_PER_SECTION = 5
 
     function parseMoney(string) {
-      var trimmed = string.replace(/[^.0-9]/, "")
+      var trimmed = string.replace(/[^0-9.-]*/g, "")
       var amount = parseFloat(trimmed)
       var dollars = Math.floor(amount)
       var remainder = amount - dollars
@@ -24,7 +22,22 @@ module.exports = library.export(
       return dollars*100 + cents
     }
 
+    var baseBridge = new BrowserBridge()
+
+    basicStyles.addTo(baseBridge)
+
+    baseBridge.addToBody(
+      element("a", {href: "/"}, "⤺ Back to work space")
+    )
+
+    baseBridge.addToBody(
+      element("br")
+    )
+
+
     function prepareSite(site) {
+
+      // Issue a bond
 
       site.addRoute(
         "post",
@@ -54,17 +67,23 @@ module.exports = library.export(
         }
       )
 
-      var baseBridge = new BrowserBridge()
 
-      basicStyles.addTo(baseBridge)
+      // Learn about an issued bond
 
-      baseBridge.addToBody(
-        element("a", {href: "/"}, "⤺ Back to work space")
+      site.addRoute(
+        "get",
+        "/housing-bonds/:id",
+        function(request, response) {
+          var bridge = new BrowserBridge()
+        
+          var bond = issueBond.get(request.params.id)
+
+          renderBondPurchase(bridge.forResponse(response), bond)
+        }
       )
 
-      baseBridge.addToBody(
-        element("br")
-      )
+
+      // Request to buy a bond
 
       site.addRoute(
         "post",
@@ -83,14 +102,14 @@ module.exports = library.export(
             }
           })
 
-          issueBond.requestShares(name, number, bondId, faceValue)
+          var order = issueBond.orderShares(null, name, number, bondId, faceValue)
 
           tellTheUniverse(
-            "issueBond.requestShares", name, number, bondId, faceValue)
+            "issueBond.orderShares", order.id, name, number, bondId, faceValue)
 
           var buyer = phoneNumber("18123201877")
 
-          buyer.send(number+" wants to by a $"+toDollarString(faceValue)+" bond")
+          buyer.send(number+" ("+name+") wants to by a "+toDollarString(faceValue)+" bond: http://ezjs.co/bond-orders/"+order.id)
 
           var bridge = baseBridge.forResponse(response)
 
@@ -98,18 +117,56 @@ module.exports = library.export(
         }
       )
 
-      site.addRoute(
-        "get",
-        "/housing-bonds/:id",
-        function(request, response) {
-          var bridge = new BrowserBridge()
-        
-          var bond = issueBond.get(request.params.id)
+      // Get an order to sign
 
-          renderBondPurchase(bridge.forResponse(response), bond)
-        }
+      site.addRoute("get", "/bond-orders/:orderId", function(request, response) {
+
+        var order = issueBond.getOrder(request.params.orderId)
+        var bond = issueBond.get(order.bondId)
+        var bridge = baseBridge.forResponse(response)
+
+        renderUnsignedShare(bridge, bond, order)
+      })
+
+
+      // Mark shares paid
+
+      site.addRoute("post", "/bond-orders/:orderId/mark-paid", function(request, response) {
+
+        var orderId = request.params.orderId
+        var signature = request.body.paymentReceivedBy
+        var order = issueBond.getOrder(orderId)
+        var price = parseMoney(request.body.price)
+
+        issueBond.markPaid(orderId, price, signature)
+
+        tellTheUniverse("issueBond.markPaid", orderId, price, signature)
+
+        baseBridge.forResponse(response).send("Shares signed")
+      })
+
+    }
+
+    function renderUnsignedShare(bridge, bond, order) {
+
+      var price = order.faceValue / 1.05
+
+      var form = element("form", {method: "post", action: "/bond-orders/"+order.id+"/mark-paid"}, [
+        element("h1", "Receipt of payment for bond shares"),
+        element("p", "To be repayed from "+bond.repaymentSource),
+      ])
+
+      form.addChildren(
+        element("input", {type: "text", value: order.purchaserName, name: "purchaserName", placeholder: "Name of person buying shares"}),
+        element("input", {type: "text", value: toDollarString(order.faceValue), name: "faceValue", placeholder: "Face value"}),
+        element("input", {type: "text", value: toDollarString(price), name: "price", placeholder: "Price"}),
+        element("input", {type: "text", value: order.phoneNumber, name: "contactNumber", placeholder: "Contact number"}),
+        element("p", "Payment accepted by"),
+        element("input", {type: "text", value: "Erik", name: "paymentReceivedBy", placeholder: "Signed"}),
+        element("p", element("input", {type: "submit", value: "Mark paid"}))
       )
 
+      bridge.send(form)
     }
 
     function renderBondPurchase(bridge, bond) {
@@ -189,13 +246,13 @@ module.exports = library.export(
 
       var items = invoice.lineItems.map(lineItemTemplate)
 
-      var totalText = "$"+toDollarString(invoice.total)
+      var totalText = toDollarString(invoice.total)
 
       var body = element("form", {method: "post", action: "/housing-bonds"}, [
         element("h1", "Housing Bond: "+list.story),
         element(items),
         element("p", [
-          element("Tax: $"+toDollarString(invoice.tax)),
+          element("Tax: "+toDollarString(invoice.tax)),
           element("Total: "+totalText),
         ]),
 
@@ -285,13 +342,18 @@ module.exports = library.export(
             "border-bottom": "1px solid #666",
             "padding-left": "0.25em"
           }),
-          "$"+toDollarString(item.subtotal)
+          toDollarString(item.subtotal)
         ))
       }
     )
 
 
     function toDollarString(cents) {
+
+      if (cents < 0) {
+        var negative = true
+        cents = Math.abs(cents)
+      }
 
       cents = Math.ceil(cents)
 
@@ -301,7 +363,13 @@ module.exports = library.export(
         remainder = "0"+remainder
       }
 
-      return dollars+"."+remainder
+      var string = "$"+dollars+"."+remainder
+
+      if (negative) {
+        string = "-"+string
+      }
+
+      return string
     }
 
     renderBond.prepareSite = prepareSite

@@ -5,10 +5,12 @@ module.exports = library.export(
   ["plivo"],
   function(plivo) {
 
-    plivo = plivo.RestAPI({
-      authId: process.env.PLIVO_AUTH_ID,
-      authToken: process.env.PLIVO_AUTH_TOKEN,
-    })
+    if (process.env.PLIVO_AUTH_ID) {
+      var messages = plivo.RestAPI({
+        authId: process.env.PLIVO_AUTH_ID,
+        authToken: process.env.PLIVO_AUTH_TOKEN,
+      })
+    }
 
     function PhoneNumber(number) {
       this.number = number
@@ -25,7 +27,11 @@ module.exports = library.export(
         console.log("Message sent?", status)
       }
 
-      plivo.send_message(message, handleResponse)
+      if (!messages) {
+        throw new Error("Tried to send text message, but no Plivo credentials found. Try starting app with PLIVO_AUTH_ID=x PLIVO_AUTH_TOKEN=y node your-app")
+      }
+
+      messages.send_message(message, handleResponse)
 
       console.log("sent!", this.number)
     }
