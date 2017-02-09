@@ -18,10 +18,17 @@ module.exports = library.export(
 
         element("h1", "What makes you think you can do this?"),
         element("p", "In order to buy the materials, pay myself and Bobby (my partner in prototype building), pay the premium on the bonds, I need to sell the house for $3000."),
-        element("p", "Seems doable in the Bay Area housing market."),
+        element("p", "Someone could spend the $3000, plop it in their yard, rent it for $300 a month and make back their principle in 10 months."),
 
         element("h1", "These \"plans\" are they sketched on a napkin somewhere?"),
         element("p", "No, they are computer drawings and instruction checklists for how to build everything. I will dump all of the details I have below."),
+
+        element("h1", "What if it takes longer than you think? Shit happens right?"),
+        element("p", "I think we can build it in 2 weeks. That plus an additiona 8 weeks of \"overage\" and sales time = 60 days."),
+        element("p", "But yes, this first time is a best guess. The second time will be based on data."),
+
+        element("p", "It's also worth remembering that Bobby and I have already built two of these and I've tested building the production panels and using them for an addition, so my estimate of 2 weeks is based on timing things I have actually done."),
+
         element("p", "If I've convinced you, click one of the buttons below. If you have questions, text me: 812-320-1877."),
         element("p", "Best,", element("br"), "Erik"),
       ])
