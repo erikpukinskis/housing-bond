@@ -9,6 +9,8 @@ module.exports = library.export(
 
     var tellTheUniverse = tellTheUniverse.called("bonds").withNames({issueBond: "issue-bond"})
 
+    tellTheUniverse.load()
+
 
     function parseMoney(string) {
       var trimmed = string.replace(/[^0-9.-]*/g, "")
@@ -299,6 +301,7 @@ module.exports = library.export(
 
     renderInvoice.materialsForList = materialsForList
 
+    renderInvoice.invoiceMaterials = invoiceMaterials
 
     return renderInvoice
 
