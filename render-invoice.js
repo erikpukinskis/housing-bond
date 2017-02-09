@@ -2,8 +2,8 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "render-invoice",
-  ["basic-styles", "house-panels", "web-element"],
-  function(basicStyles, housePanels, element) {
+  ["basic-styles", "house-panels", "web-element", "./invoice-materials"],
+  function(basicStyles, housePanels, element, invoiceMaterials) {
 
     var HOURLY = 2000
 
@@ -37,10 +37,7 @@ module.exports = library.export(
         ]),
       ]
 
-      console.log("sending content to invoice bridge")
-
       bridge.send(body)
-      console.log("done")
     }
 
     var lineItemTemplate = element.template(
