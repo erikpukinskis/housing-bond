@@ -2,10 +2,10 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "render-pitch",
-  ["basic-styles", "web-element", "./render-invoice", "release-checklist"],
-  function(basicStyles, element, renderInvoice, releaseChecklist) {
+  ["basic-styles", "web-element", "./render-invoice", "release-checklist", "house-panels", "build-house"],
+  function(basicStyles, element, renderInvoice, releaseChecklist, housePanels, buildHouse) {
 
-    function renderPitch(bridge, bond, invoice) {
+    function renderPitch(bridge, bond, invoice, materials) {
 
       basicStyles.addTo(bridge)
 
@@ -58,12 +58,34 @@ module.exports = library.export(
         element(".caption", "Front view"),
       ])
 
+
+
+      var instructionPartial = bridge.partial()
+
+      var tag = "side wall"
+
+      var options = housePanels.byTag[tag]
+
+      var steps = buildHouse.buildWall(options, materials)
+
+      buildHouse.prepareBridge(bridge)
+
+      buildHouse.instructionPage(steps, materials, instructionPartial, tag)
+
+      var steps = [
+        element("h1", "Build steps"),
+        element("p", "I have written software that will walk the builders through the build process. Below is an example, the steps to build one of the side wall panels."),
+        instructionPartial
+      ]
+
+
+
       var body = element(
         element.style({
           "max-width": "500px",
           "margin": "2em 10% 10em 10%",
         }),
-        [letter, form, invoice, plans],
+        [letter, form, invoice, plans, steps],
         element.stylesheet(
           element.style(".caption", {
             "text-align": "center",

@@ -88,7 +88,7 @@ module.exports = library.export(
 
           renderInvoice(invoice, materials, materials.hours)
 
-          renderPitch(bridge, bond, invoice)
+          renderPitch(bridge, bond, invoice, materials)
         }
       )
 

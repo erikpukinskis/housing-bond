@@ -15,7 +15,8 @@
     "tell-the-universe": "*",
     "web-host": "*",
     "identifiable": "*",
-    "plivo": "*"
+    "plivo": "*",
+    "build-house": "*"
   },
   "devDependencies": {
     "web-host": "*",
