@@ -1,8 +1,8 @@
 var library = require("module-library")(require)
 
 library.using(
-  ["web-host", "release-checklist", "./", "./issue-bond"],
-  function(host, releaseChecklist, renderInvoice, issueBond) {
+  ["web-host", "release-checklist", "./", "./issue-bond", "./invoice-materials"],
+  function(host, releaseChecklist, renderInvoice, issueBond, invoiceMaterials) {
 
     var list = releaseChecklist.get("test")
 
@@ -15,12 +15,21 @@ library.using(
     })
 
     var materials = renderInvoice.materialsForList(list)
+
+    var invoice = invoiceMaterials(materials)
     
 
-
     host.onRequest(function(getBridge) {
-      renderInvoice(getBridge(), materials, hours)
-      renderInvoice.issueBondForm(list, getBridge())
+      var bridge = getBridge()
+
+      var invoicePartial = bridge.partial()
+      var bondPartial = bridge.partial()
+
+      renderInvoice(invoicePartial, invoice, materials.hours)
+
+      renderInvoice.issueBondForm(bondPartial, list, invoice)
+
+      bridge.send([invoicePartial, bondPartial])
     })
 
   }

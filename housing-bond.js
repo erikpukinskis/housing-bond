@@ -3,8 +3,8 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "housing-bond",
-  ["web-element", "basic-styles", "tell-the-universe", "./issue-bond", "release-checklist", "browser-bridge", "./phone-number", "./render-invoice", "./render-pitch", "house-plan", "house-panels", "building-materials"],
-  function(element, basicStyles, tellTheUniverse, issueBond, releaseChecklist, BrowserBridge, phoneNumber, renderInvoice, renderPitch, HousePlan, housePanels, buildingMaterials) {
+  ["web-element", "basic-styles", "tell-the-universe", "./issue-bond", "release-checklist", "browser-bridge", "./phone-number", "./render-invoice", "./render-pitch", "house-plan", "house-panels", "building-materials", "./invoice-materials"],
+  function(element, basicStyles, tellTheUniverse, issueBond, releaseChecklist, BrowserBridge, phoneNumber, renderInvoice, renderPitch, HousePlan, housePanels, buildingMaterials, invoiceMaterials) {
 
 
     var tellTheUniverse = tellTheUniverse.called("bonds").withNames({issueBond: "issue-bond"})
@@ -68,13 +68,13 @@ module.exports = library.export(
 
       // Learn about an issued bond
 
-      site.addRoute("get", "/housing-bond/tiny.jpg", site.sendFile("tiny.jpg"))
+      site.addRoute("get", "/housing-bond/tiny.jpg", site.sendFile(__dirname, "tiny.jpg"))
 
-      site.addRoute("get", "/housing-bond/front-view.gif", site.sendFile("front-view.gif"))
+      site.addRoute("get", "/housing-bond/front-view.gif", site.sendFile(__dirname, "front-view.gif"))
 
-      site.addRoute("get", "/housing-bond/side-view.gif", site.sendFile("side-view.gif"))
+      site.addRoute("get", "/housing-bond/side-view.gif", site.sendFile(__dirname, "side-view.gif"))
 
-      site.addRoute("get", "/housing-bond/top-view.gif", site.sendFile("top-view.gif"))
+      site.addRoute("get", "/housing-bond/top-view.gif", site.sendFile(__dirname, "top-view.gif"))
 
       site.addRoute(
         "get",
@@ -84,11 +84,15 @@ module.exports = library.export(
           var bond = issueBond.get(request.params.id)
           var list = releaseChecklist.get(bond.data.listId)
           var materials = materialsForList(list)
-          var invoice = bridge.partial()
 
-          renderInvoice(invoice, materials, materials.hours)
+          var invoicePartial = bridge.partial()
 
-          renderPitch(bridge, bond, invoice, materials)
+          var invoice = invoiceMaterials(materials)
+
+          renderInvoice(invoicePartial, invoice, materials.hours)
+
+          console.log("sending invoice partial to pitch")
+          renderPitch(bridge, bond, invoicePartial, materials)
         }
       )
 
@@ -216,9 +220,9 @@ module.exports = library.export(
     }
 
 
-    function issueBondForm(list, bridge) {
+    function issueBondForm(bridge, list, invoice) {
 
-      return element("form", {method: "post", action: "/housing-bonds"}, [
+      var form = element("form", {method: "post", action: "/housing-bonds"}, [
         element("p", "Who is issuing this bond?"),
         element("p",
           element("input", {
@@ -233,7 +237,7 @@ module.exports = library.export(
           element("input", 
             {
               type: "text", 
-              value: totalText,
+              value: toDollarString(invoice.total),
               name: "amount",
               placeholder: "Amount"
             },
@@ -259,6 +263,8 @@ module.exports = library.export(
 
         element("input.button", {type: "submit", value: "Issue bond"}),
       ])
+
+      bridge.send(form)
 
     }
 

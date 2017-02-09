@@ -2,12 +2,12 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "render-invoice",
-  ["basic-styles", "house-panels", "web-element", "./invoice-materials"],
-  function(basicStyles, housePanels, element, invoiceMaterials) {
+  ["basic-styles", "house-panels", "web-element"],
+  function(basicStyles, housePanels, element) {
 
     var HOURLY = 2000
 
-    function renderInvoice(bridge, materials, hours) {      
+    function renderInvoice(bridge, invoice, hours) {      
       basicStyles.addTo(bridge)
 
       if (!bridge.__nrtvHousingBondStyles) {
@@ -16,8 +16,6 @@ module.exports = library.export(
 
         bridge.__nrtvHousingBondStyles = true
       }
-
-      var invoice = invoiceMaterials(materials)
 
       invoice.addLineItem({
         description: "builder labor",
@@ -39,7 +37,10 @@ module.exports = library.export(
         ]),
       ]
 
+      console.log("sending content to invoice bridge")
+
       bridge.send(body)
+      console.log("done")
     }
 
     var lineItemTemplate = element.template(

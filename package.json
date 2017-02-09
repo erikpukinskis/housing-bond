@@ -13,7 +13,6 @@
     "browser-bridge": "*",
     "basic-styles": "*",
     "tell-the-universe": "*",
-    "web-host": "*",
     "identifiable": "*",
     "plivo": "*",
     "build-house": "*"
