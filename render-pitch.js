@@ -9,8 +9,17 @@ module.exports = library.export(
 
       basicStyles.addTo(bridge)
 
+      var heroStyle = element.style("img.hero", {
+        "width": "100%",
+        "@media (max-width: 600px)": {
+          "margin-left": "-20%",
+          "margin-right": "-40%",
+          "width": "140%",
+        }
+      })
+
       var letter = element([
-        element("img", {src: "/housing-bond/tiny.jpg"}, element.style({"width": "100%"})),
+        element("img.hero", {src: "/housing-bond/tiny.jpg"}),
         element("h1", "Dear friends,"),
         element("p", "I'm starting a  tiny house building business. I have built two prototypes, and made very detailed plans. I would like to build one for sale."),
         element("p", "I need materials. Materials cost money. Classic situation in economics. I need to sell a bond."),
@@ -94,6 +103,7 @@ module.exports = library.export(
         }),
         [letter, form, invoice, plans, steps],
         element.stylesheet(
+          heroStyle,
           element.style(".caption", {
             "text-align": "center",
             "margin-bottom": "5em",

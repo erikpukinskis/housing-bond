@@ -1,16 +1,14 @@
 var library = require("module-library")(require)
 
-
 module.exports = library.export(
   "housing-bond",
-  ["web-element", "basic-styles", "tell-the-universe", "./issue-bond", "release-checklist", "browser-bridge", "./phone-number", "./render-invoice", "./render-pitch", "house-plan", "house-panels", "building-materials", "./invoice-materials"],
-  function(element, basicStyles, tellTheUniverse, issueBond, releaseChecklist, BrowserBridge, phoneNumber, renderInvoice, renderPitch, HousePlan, housePanels, buildingMaterials, invoiceMaterials) {
+  ["web-element", "basic-styles", "tell-the-universe", "./issue-bond", "release-checklist", "browser-bridge", "./phone-number", "./render-invoice", "./render-pitch", "house-plan", "house-panels", "building-materials", "./invoice-materials", "./render-checklist"],
+  function(element, basicStyles, tellTheUniverse, issueBond, releaseChecklist, BrowserBridge, phoneNumber, renderInvoice, renderPitch, HousePlan, housePanels, buildingMaterials, invoiceMaterials, renderChecklist) {
 
 
     var tellTheUniverse = tellTheUniverse.called("bonds").withNames({issueBond: "issue-bond"})
 
     tellTheUniverse.load()
-
 
     function parseMoney(string) {
       var trimmed = string.replace(/[^0-9.-]*/g, "")
@@ -38,6 +36,12 @@ module.exports = library.export(
     function prepareSite(site) {
 
       // Issue a bond
+
+      site.addRoute("get", "/checklist/:listId", function(request, response) {
+        var bridge = baseBridge.forResponse(response)
+        var list = releaseChecklist.get(request.params.listId)
+        renderChecklist(bridge, list)
+      })
 
       site.addRoute(
         "post",
@@ -94,6 +98,7 @@ module.exports = library.export(
           renderInvoice(invoicePartial, invoice, materials.hours)
 
           console.log("sending invoice partial to pitch")
+
           renderPitch(bridge, bond, invoicePartial, materials)
         }
       )
